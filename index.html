@@ -43,8 +43,19 @@
   import { renderHeader, showToast, renderSkeletons, updateCartBadge, escapeHtml } from './js/ui.js';
   import { i18n } from './js/i18n.js';
 
-  document.getElementById('hero-eyebrow').textContent = i18n.t('hero_eyebrow');
-  document.getElementById('hero-title').textContent = i18n.t('hero_title');
+  document.getElementById('hero-eyebrow').innerHTML = `
+    <svg width="10" height="10" viewBox="0 0 10 10" style="flex-shrink:0"><circle cx="5" cy="5" r="5" fill="var(--accent)"/></svg>
+    ${i18n.t('hero_eyebrow')}
+  `;
+  const rawTitle = i18n.t('hero_title');
+  // Wrap the first word in accent gradient span
+  const titleWords = rawTitle.split(' ');
+  const heroTitleEl = document.getElementById('hero-title');
+  if (titleWords.length > 1) {
+    heroTitleEl.innerHTML = `<span class="accent-word">${titleWords[0]}</span> ${titleWords.slice(1).join(' ')}`;
+  } else {
+    heroTitleEl.textContent = rawTitle;
+  }
   document.getElementById('hero-subtitle').textContent = i18n.t('hero_subtitle');
   document.getElementById('section-title').textContent = i18n.t('catalog_title');
   document.getElementById('search-input').placeholder = i18n.t('search_placeholder');
@@ -145,6 +156,10 @@
         <a href="product.html?id=${p.id}" style="text-decoration:none;display:contents">
           <div class="product-img-wrap">
             <img src="${escapeHtml(p.image)}" alt="${escapeHtml(p.title)}" loading="lazy">
+            <div class="product-rating">
+              <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              ${p.rating.rate}
+            </div>
           </div>
           <div class="product-info">
             <span class="product-category">${escapeHtml(p.category)}</span>
@@ -154,13 +169,13 @@
         </a>
         <div class="product-actions">
           <button class="btn btn-primary add-to-details" data-id="${p.id}">${i18n.t('btn_details')}</button>
-          <button class="btn-cart-quick add-to-cart-quick" data-id="${p.id}" title="${i18n.t('btn_add_cart')}">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
-              <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
-            </svg>
-          </button>
         </div>
+        <button class="btn-cart-quick add-to-cart-quick" data-id="${p.id}" title="${i18n.t('btn_add_cart')}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/>
+          </svg>
+        </button>
       </div>
     `).join('');
 
@@ -173,6 +188,7 @@
 
     grid.querySelectorAll('.add-to-cart-quick').forEach(btn => {
       btn.addEventListener('click', e => {
+        e.preventDefault();
         e.stopPropagation();
         const id = Number(btn.dataset.id);
         const product = allProducts.find(p => p.id === id);
@@ -182,13 +198,9 @@
         showToast(`${product.title.slice(0, 36)}… ${i18n.t('added_toast')}`, 'success');
 
         btn.style.background = 'var(--success)';
-        btn.style.borderColor = 'var(--success)';
-        btn.style.color = 'white';
         btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
         setTimeout(() => {
           btn.style.background = '';
-          btn.style.borderColor = '';
-          btn.style.color = '';
           btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`;
         }, 1800);
       });
